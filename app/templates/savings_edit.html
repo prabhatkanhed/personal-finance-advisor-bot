@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Saving Goal{% endblock %}
+{% block page_title %}Edit Saving Goal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="card shadow-sm p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-pencil-square text-primary me-2"></i>Edit Goal</h5>
+        <a href="{{ url_for('savings.index') }}" class="btn btn-sm btn-outline-secondary">Cancel</a>
+      </div>
+
+      <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold" for="goal_name">Goal Title</label>
+          {{ form.goal_name(class="form-control" + (" is-invalid" if form.goal_name.errors else ""), id="goal_name") }}
+          {% for err in form.goal_name.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold" for="target_amount">Target Goal Amount ($)</label>
+          {{ form.target_amount(class="form-control" + (" is-invalid" if form.target_amount.errors else ""), id="target_amount") }}
+          {% for err in form.target_amount.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold" for="current_amount">Current Saved ($)</label>
+          {{ form.current_amount(class="form-control" + (" is-invalid" if form.current_amount.errors else ""), id="current_amount") }}
+          {% for err in form.current_amount.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold" for="target_date">Target Date</label>
+          {{ form.target_date(class="form-control" + (" is-invalid" if form.target_date.errors else ""), id="target_date") }}
+          {% for err in form.target_date.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-2">
+          <i class="bi bi-check-lg me-1"></i> Update Saving Goal
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

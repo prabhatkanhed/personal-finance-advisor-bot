@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Savings Goals{% endblock %}
+{% block page_title %}Savings & Wealth Goals{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <!-- Left Column: Create Goal Form -->
+  <div class="col-lg-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white">
+        <h6 class="fw-bold mb-0"><i class="bi bi-bullseye text-primary me-2"></i>Create Saving Goal</h6>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('savings.index') }}">
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold" for="goal_name">Goal Title</label>
+            {{ form.goal_name(class="form-control" + (" is-invalid" if form.goal_name.errors else ""), placeholder="e.g. Emergency Fund, New Car", id="goal_name") }}
+            {% for err in form.goal_name.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold" for="target_amount">Target Amount ($)</label>
+            {{ form.target_amount(class="form-control" + (" is-invalid" if form.target_amount.errors else ""), placeholder="10000.00", id="target_amount") }}
+            {% for err in form.target_amount.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold" for="current_amount">Initial Amount Saved ($)</label>
+            {{ form.current_amount(class="form-control" + (" is-invalid" if form.current_amount.errors else ""), placeholder="0.00", id="current_amount") }}
+            {% for err in form.current_amount.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold" for="target_date">Target Date</label>
+            {{ form.target_date(class="form-control" + (" is-invalid" if form.target_date.errors else ""), id="target_date") }}
+            {% for err in form.target_date.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-plus-circle me-1"></i> Start Tracking Goal
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Saving Goals Cards -->
+  <div class="col-lg-8">
+    <!-- Summary Header -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="card stat-card">
+          <div>
+            <span class="text-muted small fw-semibold text-uppercase">Total Saved</span>
+            <h4 class="fw-bold text-success mb-0">{{ total_saved|currency }}</h4>
+          </div>
+          <div class="stat-icon success"><i class="bi bi-wallet-fill"></i></div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card stat-card">
+          <div>
+            <span class="text-muted small fw-semibold text-uppercase">Combined Target</span>
+            <h4 class="fw-bold text-primary mb-0">{{ total_target|currency }}</h4>
+          </div>
+          <div class="stat-icon primary"><i class="bi bi-flag-fill"></i></div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card stat-card">
+          <div>
+            <span class="text-muted small fw-semibold text-uppercase">Overall Progress</span>
+            <h4 class="fw-bold text-info mb-0">{{ overall_progress }}%</h4>
+          </div>
+          <div class="stat-icon info"><i class="bi bi-pie-chart-fill"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Goals Grid -->
+    <div class="card shadow-sm">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0"><i class="bi bi-piggy-bank text-primary me-2"></i>Active Goals</h6>
+        <span class="badge bg-light text-dark border">{{ goals|length }} Goals</span>
+      </div>
+      <div class="card-body">
+        {% if goals %}
+        <div class="row g-3">
+          {% for goal in goals %}
+          <div class="col-md-6">
+            <div class="card h-100 border p-3 shadow-none {% if goal.is_completed %}border-success bg-success-subtle bg-opacity-10{% endif %}">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <h6 class="fw-bold mb-1">{{ goal.goal_name }}</h6>
+                  <span class="badge {% if goal.is_completed %}bg-success{% else %}bg-primary{% endif %}">
+                    {% if goal.is_completed %}Completed! 🎉{% else %}{{ goal.progress_percentage }}% Reached{% endif %}
+                  </span>
+                </div>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-link text-muted p-0" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
+                  <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    <li><a class="dropdown-item" href="{{ url_for('savings.edit_goal', id=goal.id) }}"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                    <li>
+                      <form action="{{ url_for('savings.delete_goal', id=goal.id) }}" method="POST" onsubmit="return confirm('Remove goal {{ goal.goal_name }}?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>Delete</button>
+                      </form>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Progress bar -->
+              <div class="progress my-2" style="height: 10px;">
+                <div class="progress-bar {% if goal.is_completed %}bg-success{% else %}bg-primary{% endif %}"
+                     role="progressbar" style="width: {{ goal.progress_percentage }}%;"
+                     aria-valuenow="{{ goal.progress_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+
+              <div class="d-flex justify-content-between small text-muted mb-2">
+                <span>Saved: <strong class="text-success">{{ goal.current_amount|currency }}</strong></span>
+                <span>Target: <strong>{{ goal.target_amount|currency }}</strong></span>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center small mt-auto pt-2 border-top">
+                <span class="text-muted"><i class="bi bi-calendar3 me-1"></i>Due {{ goal.target_date.strftime('%b %d, %Y') }}</span>
+                <span class="fw-semibold {% if goal.is_completed %}text-success{% else %}text-secondary{% endif %}">
+                  {% if goal.is_completed %}Goal Achieved!{% else %}{{ goal.remaining_amount|currency }} to go{% endif %}
+                </span>
+              </div>
+
+              <!-- Quick Deposit Form -->
+              <form action="{{ url_for('savings.add_funds', id=goal.id) }}" method="POST" class="mt-3 pt-2 border-top d-flex gap-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text">$</span>
+                  <input type="number" step="0.01" min="0.01" name="amount" class="form-control" placeholder="Add funds" required>
+                  <button type="submit" class="btn btn-outline-success"><i class="bi bi-plus-lg"></i> Deposit</button>
+                </div>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="bi bi-piggy-bank"></i></div>
+          <h5 class="fw-bold">No Saving Goals Configured</h5>
+          <p class="text-muted small">Establish your first goal like an Emergency Fund or Vacation Fund, or use "Load Demo Data" to load samples.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

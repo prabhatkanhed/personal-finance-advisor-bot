@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Expenses Management{% endblock %}
+{% block page_title %}Expenses Tracker{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <!-- Left Column: Add Expense Form -->
+  <div class="col-lg-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0"><i class="bi bi-dash-circle text-danger me-2"></i>Record Expense</h6>
+        <a href="{{ url_for('finance.categories') }}" class="small text-decoration-none">Manage Categories</a>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('finance.expense_list') }}">
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold" for="category_id">Category</label>
+            {{ form.category_id(class="form-select" + (" is-invalid" if form.category_id.errors else ""), id="category_id") }}
+            {% for err in form.category_id.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold" for="amount">Amount ($)</label>
+            {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""), placeholder="0.00", id="amount") }}
+            {% for err in form.amount.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold" for="date">Date</label>
+            {{ form.date(class="form-control" + (" is-invalid" if form.date.errors else ""), id="date") }}
+            {% for err in form.date.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold" for="description">Vendor / Description</label>
+            {{ form.description(class="form-control", placeholder="e.g. Trader Joe's groceries", id="description") }}
+          </div>
+
+          <button type="submit" class="btn btn-danger w-100">
+            <i class="bi bi-check-lg me-1"></i> Add Expense
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Expense History & Filter -->
+  <div class="col-lg-8">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+          <h6 class="fw-bold mb-0"><i class="bi bi-receipt text-danger me-2"></i>Expense Records</h6>
+          <small class="text-muted">Total Recorded: <strong class="text-danger">{{ total_expenses|currency }}</strong></small>
+        </div>
+
+        <!-- Category Filter -->
+        <div>
+          <form method="GET" action="{{ url_for('finance.expense_list') }}" class="d-inline-flex gap-2 align-items-center">
+            <label class="small text-muted mb-0">Filter:</label>
+            <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="">All Categories</option>
+              {% for c in categories %}
+              <option value="{{ c.id }}" {% if selected_cat_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+              {% endfor %}
+            </select>
+          </form>
+        </div>
+      </div>
+
+      <div class="card-body p-0">
+        {% if expenses.items %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th class="ps-3">Category</th>
+                <th>Description</th>
+                <th>Date</th>
+                <th class="text-end">Amount</th>
+                <th class="text-end pe-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for exp in expenses.items %}
+              <tr>
+                <td class="ps-3">
+                  {% if exp.category %}
+                  <span class="badge" style="background-color: {{ exp.category.color }};">
+                    <i class="bi {{ exp.category.icon }} me-1"></i>{{ exp.category.name }}
+                  </span>
+                  {% else %}
+                  <span class="badge bg-secondary">Uncategorized</span>
+                  {% endif %}
+                </td>
+                <td class="text-muted small">{{ exp.description or '-' }}</td>
+                <td class="text-muted small">{{ exp.date.strftime('%b %d, %Y') }}</td>
+                <td class="text-end fw-bold text-danger">-{{ exp.amount|currency }}</td>
+                <td class="text-end pe-3">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{{ url_for('finance.edit_expense', id=exp.id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <form action="{{ url_for('finance.delete_expense', id=exp.id) }}" method="POST" onsubmit="return confirm('Delete this expense?');">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if expenses.pages > 1 %}
+        <div class="p-3 d-flex justify-content-center">
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              {% for p in expenses.iter_pages() %}
+                {% if p %}
+                  <li class="page-item {% if p == expenses.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('finance.expense_list', page=p, category=selected_cat_id or '') }}">{{ p }}</a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+              {% endfor %}
+            </ul>
+          </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="bi bi-receipt-cutoff"></i></div>
+          <h5 class="fw-bold">No Expenses Found</h5>
+          <p class="text-muted small">No expenses match your criteria. Record a transaction or load sample demo data to see charts in action.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

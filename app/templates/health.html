@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Financial Health Score{% endblock %}
+{% block page_title %}Financial Health & Scoring Breakdown{% endblock %}
+
+{% block content %}
+<!-- Top Score Overview Card -->
+<div class="card shadow-sm p-4 mb-4">
+  <div class="row align-items-center">
+    <div class="col-md-3 text-center mb-3 mb-md-0 border-end">
+      <div class="health-score-dial bg-{{ health.badge_class }}-subtle text-{{ health.badge_class }} mb-2">
+        <span class="display-4 fw-bold">{{ health.score }}</span>
+        <span class="small text-muted">out of 100</span>
+      </div>
+      <span class="badge bg-{{ health.badge_class }} px-3 py-2 fs-6">{{ health.tier }}</span>
+    </div>
+    <div class="col-md-9 ps-md-4">
+      <h4 class="fw-bold mb-2">Your Financial Health Rating: <span class="text-{{ health.badge_class }}">{{ health.tier }}</span></h4>
+      <p class="text-muted lead fs-6 mb-3">{{ health.summary }}</p>
+      <div class="d-flex flex-wrap gap-4 text-muted small">
+        <div><i class="bi bi-piggy-bank text-primary me-1"></i>Savings Rate: <strong>{{ health.savings_rate }}%</strong></div>
+        <div><i class="bi bi-receipt text-danger me-1"></i>Expense Ratio: <strong>{{ health.expense_ratio }}%</strong></div>
+        <div><i class="bi bi-wallet2 text-success me-1"></i>Net Surplus: <strong>{{ overview.month_savings|currency }}</strong></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Strengths and Areas for Improvement -->
+<div class="row g-4 mb-4">
+  <!-- Key Strengths -->
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white">
+        <h6 class="fw-bold mb-0 text-success"><i class="bi bi-shield-check me-2"></i>Financial Strengths</h6>
+      </div>
+      <div class="card-body">
+        {% if health.strengths %}
+        <ul class="list-group list-group-flush">
+          {% for str in health.strengths %}
+          <li class="list-group-item px-0 py-2 d-flex align-items-start gap-2">
+            <i class="bi bi-check-circle-fill text-success mt-1"></i>
+            <span>{{ str }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted small mb-0">Record additional income and consistent savings to build up key strengths.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Areas for Improvement -->
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white">
+        <h6 class="fw-bold mb-0 text-warning"><i class="bi bi-arrow-up-right-circle me-2"></i>Areas for Improvement</h6>
+      </div>
+      <div class="card-body">
+        {% if health.improvements %}
+        <ul class="list-group list-group-flush">
+          {% for imp in health.improvements %}
+          <li class="list-group-item px-0 py-2 d-flex align-items-start gap-2">
+            <i class="bi bi-exclamation-triangle-fill text-warning mt-1"></i>
+            <span>{{ imp }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted small mb-0">Great job! No major risk factors currently flagged.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Transparent Scoring Criteria Explanation -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white">
+    <h6 class="fw-bold mb-0"><i class="bi bi-diagram-3 text-primary me-2"></i>Transparent Scoring Methodology</h6>
+  </div>
+  <div class="card-body">
+    <p class="text-muted small mb-3">
+      Unlike opaque algorithmic black boxes, our Financial Health Score is computed deterministically from 5 fundamental pillars of personal wealth management:
+    </p>
+
+    <div class="row g-3">
+      {% for item in health.breakdown %}
+      <div class="col-md-6 col-lg-4">
+        <div class="p-3 border rounded h-100 bg-light">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <h6 class="fw-bold mb-0">{{ item.name }}</h6>
+            <span class="badge bg-primary">{{ item.score }} / {{ item.max_score }} pts</span>
+          </div>
+          <small class="text-muted d-block mb-2">{{ item.metric }}</small>
+          <div class="progress mb-2" style="height: 6px;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ item.percentage }}%;" aria-valuenow="{{ item.percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <p class="text-muted small mb-0">{{ item.description }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

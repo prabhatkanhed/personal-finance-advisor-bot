@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile{% endblock %}
+{% block page_title %}Profile & Account Settings{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card shadow-sm p-4">
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fs-3" style="width: 60px; height: 60px;">
+          {{ current_user.name[:1].upper() }}
+        </div>
+        <div>
+          <h5 class="fw-bold mb-0">{{ current_user.name }}</h5>
+          <small class="text-muted">Member since {{ current_user.created_at.strftime('%B %Y') }}</small>
+        </div>
+      </div>
+
+      <form method="POST" action="{{ url_for('auth.profile') }}">
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold" for="name">Full Name</label>
+          {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), id="name") }}
+          {% for err in form.name.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold" for="email">Email Address</label>
+          {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), id="email") }}
+          {% for err in form.email.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+        </div>
+
+        <hr class="my-4">
+        <h6 class="fw-bold text-muted small text-uppercase">Change Password</h6>
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold" for="current_password">Current Password</label>
+          {{ form.current_password(class="form-control", placeholder="Required only if changing password", id="current_password") }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold" for="new_password">New Password</label>
+          {{ form.new_password(class="form-control", placeholder="Leave blank to keep current password", id="new_password") }}
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-2">
+          <i class="bi bi-save me-1"></i> Update Profile
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <!-- Security & Isolation Card -->
+    <div class="card shadow-sm p-4 mb-4">
+      <h6 class="fw-bold mb-3"><i class="bi bi-shield-check text-success me-2"></i>Security & Financial Isolation</h6>
+      <p class="text-muted small">
+        Your account uses Werkzeug salted password hashing. All financial transactions, income streams, custom categories, budgets, and saving goals are strictly keyed to your user account (User ID: <code>#{{ current_user.id }}</code>).
+      </p>
+      <div class="p-3 bg-light rounded small text-secondary">
+        <i class="bi bi-lock me-1"></i> No other user on this system can read, query, or modify your financial records.
+      </div>
+    </div>
+
+    <!-- Demo Data Seeding Section -->
+    <div class="card shadow-sm p-4">
+      <h6 class="fw-bold mb-2"><i class="bi bi-database-gear text-primary me-2"></i>Sample Demo Data</h6>
+      <p class="text-muted small mb-3">
+        Testing features or preparing a presentation? You can load realistic financial entries (Salary, Rent, Groceries, Budgets, Emergency Fund) directly into your account with one click.
+      </p>
+      <form action="{{ url_for('auth.load_demo') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-primary w-100">
+          <i class="bi bi-cloud-arrow-down me-1"></i> Seed Realistic Demo Data
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

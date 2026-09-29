@@ -1,0 +1,256 @@
+/* Personal Finance Advisor Bot - Premium SaaS Theme */
+:root {
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-light: #e0e7ff;
+  --success: #10b981;
+  --success-light: #d1fae5;
+  --danger: #ef4444;
+  --danger-light: #fee2e2;
+  --warning: #f59e0b;
+  --warning-light: #fef3c7;
+  --info: #0ea5e9;
+  --info-light: #e0f2fe;
+  --dark-bg: #0f172a;
+  --sidebar-bg: #1e293b;
+  --sidebar-color: #cbd5e1;
+  --sidebar-active: #ffffff;
+  --sidebar-active-bg: #334155;
+  --card-bg: #ffffff;
+  --border-color: #e2e8f0;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: #f8fafc;
+  color: var(--text-main);
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* Sidebar Styling */
+#sidebar {
+  width: 260px;
+  min-height: 100vh;
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-color);
+  transition: all 0.3s ease;
+  z-index: 1040;
+}
+
+#sidebar .brand {
+  padding: 1.5rem 1.25rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#sidebar .nav-link {
+  color: var(--sidebar-color);
+  padding: 0.75rem 1.25rem;
+  margin: 0.2rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+#sidebar .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+#sidebar .nav-link.active {
+  background-color: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+}
+
+#sidebar .nav-link i {
+  font-size: 1.15rem;
+}
+
+/* Main Content Area */
+#content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+/* Top Navigation Bar */
+.top-navbar {
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.85rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+/* Modern Card Styles */
+.card {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background-color: var(--card-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.card-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
+  padding: 1rem 1.25rem;
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+}
+
+/* Stat Cards */
+.stat-card {
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+}
+
+.stat-icon.primary { background-color: var(--primary-light); color: var(--primary); }
+.stat-icon.success { background-color: var(--success-light); color: var(--success); }
+.stat-icon.danger { background-color: var(--danger-light); color: var(--danger); }
+.stat-icon.warning { background-color: var(--warning-light); color: var(--warning); }
+.stat-icon.info { background-color: var(--info-light); color: var(--info); }
+
+/* Financial Health Badge */
+.health-score-dial {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+/* Progress bars */
+.progress {
+  height: 9px;
+  border-radius: 6px;
+  background-color: #e2e8f0;
+}
+
+/* Tables */
+.table thead th {
+  background-color: #f8fafc;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table tbody td {
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* AI Sparkle elements */
+.ai-badge {
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  color: white;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ai-card-glow {
+  border: 1px solid #c7d2fe;
+  background: linear-gradient(180deg, #ffffff 0%, #f5f3ff 100%);
+}
+
+/* Loading overlay for AI generation */
+#ai-loading-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  color: #ffffff;
+}
+
+/* Toast container */
+.toast-container {
+  z-index: 1060;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  color: #94a3b8;
+  margin-bottom: 1rem;
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+  #sidebar {
+    position: fixed;
+    left: -260px;
+    height: 100%;
+  }
+
+  #sidebar.show {
+    left: 0;
+  }
+}

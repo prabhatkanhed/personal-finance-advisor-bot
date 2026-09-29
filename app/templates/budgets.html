@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Budget Management{% endblock %}
+{% block page_title %}Monthly Budgets{% endblock %}
+
+{% block content %}
+<!-- Top Header & Filter Controls -->
+<div class="row align-items-center mb-4">
+  <div class="col-md-6">
+    <h3 class="fw-bold mb-1">Budget Planning</h3>
+    <p class="text-muted small mb-0">Track category spending caps against actual expenses for <strong>{{ ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][selected_month-1] }} {{ selected_year }}</strong></p>
+  </div>
+  <div class="col-md-6 d-flex justify-content-md-end gap-2 mt-3 mt-md-0">
+    <form method="GET" action="{{ url_for('budget.index') }}" class="d-flex gap-2">
+      <select name="month" class="form-select form-select-sm" onchange="this.form.submit()">
+        {% for m in range(1, 13) %}
+        <option value="{{ m }}" {% if m == selected_month %}selected{% endif %}>
+          {{ ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m-1] }}
+        </option>
+        {% endfor %}
+      </select>
+      <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
+        {% for y in range(selected_year - 2, selected_year + 3) %}
+        <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+    </form>
+    <a href="{{ url_for('advisor.index') }}#ai-budget" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-stars text-warning me-1"></i> AI Budget Generator
+    </a>
+  </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-md-3">
+    <div class="card stat-card h-100">
+      <div>
+        <span class="text-muted small fw-semibold text-uppercase">Total Budget Cap</span>
+        <h4 class="fw-bold text-primary mb-0">{{ total_budgeted|currency }}</h4>
+      </div>
+      <div class="stat-icon primary"><i class="bi bi-pie-chart"></i></div>
+    </div>
+  </div>
+  <div class="col-12 col-md-3">
+    <div class="card stat-card h-100">
+      <div>
+        <span class="text-muted small fw-semibold text-uppercase">Total Spent</span>
+        <h4 class="fw-bold text-danger mb-0">{{ total_spent|currency }}</h4>
+      </div>
+      <div class="stat-icon danger"><i class="bi bi-receipt"></i></div>
+    </div>
+  </div>
+  <div class="col-12 col-md-3">
+    <div class="card stat-card h-100">
+      <div>
+        <span class="text-muted small fw-semibold text-uppercase">Remaining Pool</span>
+        <h4 class="fw-bold text-success mb-0">{{ remaining|currency }}</h4>
+      </div>
+      <div class="stat-icon success"><i class="bi bi-shield-check"></i></div>
+    </div>
+  </div>
+  <div class="col-12 col-md-3">
+    <div class="card stat-card h-100">
+      <div>
+        <span class="text-muted small fw-semibold text-uppercase">Overall Utilization</span>
+        <h4 class="fw-bold {% if total_spent > total_budgeted and total_budgeted > 0 %}text-danger{% else %}text-warning{% endif %} mb-0">
+          {{ overall_utilization }}%
+        </h4>
+      </div>
+      <div class="stat-icon warning"><i class="bi bi-speedometer2"></i></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left Column: Add / Edit Budget -->
+  <div class="col-lg-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white">
+        <h6 class="fw-bold mb-0"><i class="bi bi-plus-circle text-primary me-2"></i>Set Budget Target</h6>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('budget.index', month=selected_month, year=selected_year) }}">
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold" for="category">Category</label>
+            {{ form.category(class="form-select" + (" is-invalid" if form.category.errors else ""), id="category") }}
+            {% for err in form.category.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold" for="amount">Monthly Budget Cap ($)</label>
+            {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""), placeholder="e.g. 500.00", id="amount") }}
+            {% for err in form.amount.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-semibold" for="month">Month</label>
+              {{ form.month(class="form-select", id="month") }}
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold" for="year">Year</label>
+              {{ form.year(class="form-control", id="year") }}
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-save me-1"></i> Save Budget
+          </button>
+        </form>
+
+        <hr class="my-4">
+
+        <div class="p-3 bg-light rounded border">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-stars text-primary fs-5"></i>
+            <h6 class="fw-bold mb-0">Need an AI-crafted Budget?</h6>
+          </div>
+          <p class="small text-muted mb-2">Let Google Gemini calculate optimal 50/30/20 category caps based on your income and lifestyle goals.</p>
+          <a href="{{ url_for('advisor.index') }}#ai-budget" class="btn btn-sm btn-outline-primary w-100">
+            Generate with AI <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Budget Cards & Progress Bars -->
+  <div class="col-lg-8">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0"><i class="bi bi-sliders text-primary me-2"></i>Active Budgets & Utilization</h6>
+        <span class="badge bg-light text-dark border">{{ budgets|length }} Budgets Set</span>
+      </div>
+      <div class="card-body">
+        {% if budgets %}
+        <div class="row g-3">
+          {% for b in budgets %}
+          <div class="col-12">
+            <div class="p-3 border rounded {% if b.is_over_budget %}border-danger bg-danger-subtle bg-opacity-10{% endif %}">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <div>
+                  <h6 class="fw-bold mb-0">{{ b.category }}</h6>
+                  <small class="text-muted">Spent: <strong class="{% if b.is_over_budget %}text-danger{% else %}text-dark{% endif %}">{{ b.spent_amount|currency }}</strong> of {{ b.budget_amount|currency }}</small>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge {{ b.progress_bar_class }}">{{ b.utilization }}%</span>
+                  <form action="{{ url_for('budget.delete_budget', id=b.id) }}" method="POST" onsubmit="return confirm('Remove budget for {{ b.category }}?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-link text-danger p-0 ms-1" title="Delete budget">
+                      <i class="bi bi-x-circle fs-5"></i>
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              <!-- Visual Progress Bar -->
+              <div class="progress my-2" style="height: 10px;">
+                <div class="progress-bar {{ b.progress_bar_class }}" role="progressbar"
+                     style="width: {{ [b.utilization, 100]|min }}%;"
+                     aria-valuenow="{{ b.utilization }}" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+
+              <div class="d-flex justify-content-between small">
+                {% if b.is_over_budget %}
+                <span class="text-danger fw-bold"><i class="bi bi-exclamation-octagon-fill me-1"></i>Over budget by {{ (b.spent_amount - b.budget_amount)|currency }}</span>
+                {% else %}
+                <span class="text-success"><i class="bi bi-check-circle me-1"></i>Remaining: {{ b.remaining_amount|currency }}</span>
+                {% endif %}
+                <span class="text-muted">{{ b.spent_amount|currency }} / {{ b.budget_amount|currency }}</span>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="bi bi-pie-chart"></i></div>
+          <h5 class="fw-bold">No Budgets Defined for This Period</h5>
+          <p class="text-muted small">Establish spending targets using the form on the left, or click "Generate with AI" to generate a tailored budget structure.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

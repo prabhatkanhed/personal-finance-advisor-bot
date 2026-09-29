@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+
+{% block title %}AI Financial Advisor{% endblock %}
+{% block page_title %}AI Financial Advisor & Planner{% endblock %}
+
+{% block content %}
+<!-- Top Intro Banner -->
+<div class="card ai-card-glow shadow-sm p-4 mb-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <span class="ai-badge"><i class="bi bi-stars"></i> Powered by Google Gemini</span>
+        {% if has_gemini_key %}
+        <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-circle me-1"></i>Live Gemini Model</span>
+        {% else %}
+        <span class="badge bg-secondary-subtle text-secondary border"><i class="bi bi-cpu me-1"></i>Smart Heuristic Mode</span>
+        {% endif %}
+      </div>
+      <h3 class="fw-bold mb-1">Your Personal AI Wealth Coach</h3>
+      <p class="text-muted mb-0">Receive automated spending audits, leak detection, savings plans, and custom 50/30/20 budget generation.</p>
+    </div>
+    <div>
+      <form action="{{ url_for('advisor.analyze') }}" method="POST" class="ai-trigger-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold shadow-sm">
+          <i class="bi bi-cpu-fill me-1"></i> Analyze My Finances Now
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs Navigation: Analysis vs Budget Generator -->
+<ul class="nav nav-pills mb-4" id="advisorTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link {% if not budget_plan %}active{% endif %}" id="analysis-tab" data-bs-toggle="pill" data-bs-target="#analysis-content" type="button" role="tab">
+      <i class="bi bi-file-earmark-bar-graph me-1"></i> Comprehensive Financial Analysis
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link {% if budget_plan %}active{% endif %}" id="budget-gen-tab" data-bs-toggle="pill" data-bs-target="#budget-gen-content" type="button" role="tab">
+      <i class="bi bi-stars text-warning me-1"></i> Generate My Budget with AI
+    </button>
+  </li>
+</ul>
+
+<div class="tab-content" id="advisorTabContent">
+  <!-- ========================================== -->
+  <!-- TAB 1: FINANCIAL ANALYSIS                  -->
+  <!-- ========================================== -->
+  <div class="tab-pane fade {% if not budget_plan %}show active{% endif %}" id="analysis-content" role="tabpanel">
+    {% if analysis %}
+    <!-- Personalized Insights Card -->
+    <div class="card shadow-sm border-primary border-opacity-25 mb-4">
+      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <span class="fw-bold"><i class="bi bi-lightbulb-fill me-2"></i>Executive Summary & Priority Insights</span>
+        <span class="badge bg-white text-primary">{% if analysis.is_live_ai %}Gemini Live AI{% else %}Automated Rule Engine{% endif %}</span>
+      </div>
+      <div class="card-body">
+        <p class="lead mb-0 fs-6">{{ analysis.personalized_insights }}</p>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <!-- Spending Analysis -->
+      <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-header bg-white">
+            <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-graph-down me-2"></i>Spending Habit Analysis</h6>
+          </div>
+          <div class="card-body">
+            <p class="text-secondary">{{ analysis.spending_analysis }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overspending Detection -->
+      <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-header bg-white">
+            <h6 class="fw-bold mb-0 text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Overspending & Leakage Detection</h6>
+          </div>
+          <div class="card-body">
+            <ul class="list-group list-group-flush">
+              {% for issue in analysis.overspending_detection %}
+              <li class="list-group-item px-0 py-2 d-flex align-items-start gap-2">
+                <i class="bi bi-arrow-right-circle-fill text-danger mt-1"></i>
+                <span>{{ issue }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <!-- Budget Recommendations -->
+      <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-header bg-white">
+            <h6 class="fw-bold mb-0 text-info"><i class="bi bi-sliders me-2"></i>Budget Optimization Recommendations</h6>
+          </div>
+          <div class="card-body">
+            <ul class="list-group list-group-flush">
+              {% for rec in analysis.budget_recommendations %}
+              <li class="list-group-item px-0 py-2 d-flex align-items-start gap-2">
+                <i class="bi bi-check-circle-fill text-info mt-1"></i>
+                <span>{{ rec }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Savings Recommendations -->
+      <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-header bg-white">
+            <h6 class="fw-bold mb-0 text-success"><i class="bi bi-piggy-bank-fill me-2"></i>Savings Acceleration Strategies</h6>
+          </div>
+          <div class="card-body">
+            <ul class="list-group list-group-flush">
+              {% for s_rec in analysis.savings_recommendations %}
+              <li class="list-group-item px-0 py-2 d-flex align-items-start gap-2">
+                <i class="bi bi-arrow-up-circle-fill text-success mt-1"></i>
+                <span>{{ s_rec }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <!-- Cost Optimization Suggestions -->
+      <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-header bg-white">
+            <h6 class="fw-bold mb-0 text-warning"><i class="bi bi-scissors me-2"></i>Cost Optimization Opportunities</h6>
+          </div>
+          <div class="card-body">
+            <ul class="list-group list-group-flush">
+              {% for opt in analysis.cost_optimization_suggestions %}
+              <li class="list-group-item px-0 py-2 d-flex align-items-start gap-2">
+                <i class="bi bi-lightning-fill text-warning mt-1"></i>
+                <span>{{ opt }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Emergency Fund Guidance -->
+      <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-header bg-white">
+            <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-shield-check me-2"></i>Emergency Fund Guidance</h6>
+          </div>
+          <div class="card-body">
+            <p class="text-secondary">{{ analysis.emergency_fund_guidance }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% else %}
+    <!-- Initial Prompt Card when no analysis has been run yet -->
+    <div class="card shadow-sm p-5 text-center mb-4">
+      <div class="mx-auto bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+        <i class="bi bi-magic fs-2"></i>
+      </div>
+      <h4 class="fw-bold">Ready to Analyze Your Finances?</h4>
+      <p class="text-muted mx-auto" style="max-width: 600px;">
+        Our AI advisor will review your income, spending patterns, budgets, and savings goals to detect overspending, calculate risk factors, and provide tailored optimizations.
+      </p>
+      <div class="mt-2">
+        <form action="{{ url_for('advisor.analyze') }}" method="POST" class="ai-trigger-form d-inline-block">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">
+            <i class="bi bi-play-circle me-1"></i> Run Financial Audit
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ========================================== -->
+  <!-- TAB 2: AI BUDGET GENERATOR                 -->
+  <!-- ========================================== -->
+  <div class="tab-pane fade {% if budget_plan %}show active{% endif %}" id="budget-gen-content" role="tabpanel">
+    <div class="row g-4">
+      <!-- Input Parameters Form -->
+      <div class="col-lg-4">
+        <div class="card shadow-sm">
+          <div class="card-header bg-white">
+            <h6 class="fw-bold mb-0"><i class="bi bi-sliders2 text-primary me-2"></i>Your Budget Parameters</h6>
+          </div>
+          <div class="card-body">
+            <form action="{{ url_for('advisor.generate_budget') }}" method="POST" class="ai-trigger-form">
+              {{ budget_form.hidden_tag() }}
+
+              <div class="mb-3">
+                <label class="form-label small fw-semibold" for="monthly_income">Monthly Net Income ($)</label>
+                {{ budget_form.monthly_income(class="form-control", placeholder="4500.00", id="monthly_income") }}
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label small fw-semibold" for="fixed_expenses">Estimated Fixed Expenses ($)</label>
+                {{ budget_form.fixed_expenses(class="form-control", placeholder="1800.00", id="fixed_expenses") }}
+                <small class="text-muted">Rent, utilities, insurance, loan payments</small>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label small fw-semibold" for="variable_expenses">Estimated Variable Expenses ($)</label>
+                {{ budget_form.variable_expenses(class="form-control", placeholder="800.00", id="variable_expenses") }}
+                <small class="text-muted">Groceries, dining, transportation</small>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label small fw-semibold" for="savings_goal">Target Monthly Savings ($)</label>
+                {{ budget_form.savings_goal(class="form-control", placeholder="900.00", id="savings_goal") }}
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label small fw-semibold" for="financial_goals">Priorities & Lifestyle Goals</label>
+                {{ budget_form.financial_goals(class="form-control", rows="3", placeholder="e.g. Save for a house down-payment while enjoying dining out twice a week", id="financial_goals") }}
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                <i class="bi bi-stars me-1"></i> Generate My Budget with AI
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generated AI Budget Plan Preview -->
+      <div class="col-lg-8">
+        {% if budget_plan %}
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-award me-2"></i>{{ budget_plan.framework }}</h5>
+              <small class="text-muted">{{ budget_plan.summary }}</small>
+            </div>
+            <!-- Apply AI Budget to actual Database Action -->
+            <form action="{{ url_for('budget.apply_ai_budget') }}" method="POST">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="budget_json" value='{{ budget_plan_json|e }}'>
+              <button type="submit" class="btn btn-success fw-semibold shadow-sm">
+                <i class="bi bi-check2-circle me-1"></i> Apply to My Monthly Budget
+              </button>
+            </form>
+          </div>
+
+          <div class="card-body">
+            <!-- 3 Core Pillars -->
+            <div class="row g-3 mb-4">
+              <!-- Needs -->
+              <div class="col-md-4">
+                <div class="p-3 border rounded border-primary bg-primary-subtle bg-opacity-10 h-100">
+                  <span class="badge bg-primary mb-2">Needs ({{ budget_plan.needs.percentage }}%)</span>
+                  <h4 class="fw-bold text-primary mb-1">{{ budget_plan.needs.total|currency }}</h4>
+                  <ul class="list-unstyled small mt-2 mb-0">
+                    {% for cat in budget_plan.needs.categories %}
+                    <li class="d-flex justify-content-between py-1 border-bottom border-light">
+                      <span>{{ cat.name }}</span>
+                      <strong>{{ cat.amount|currency }}</strong>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Wants -->
+              <div class="col-md-4">
+                <div class="p-3 border rounded border-warning bg-warning-subtle bg-opacity-10 h-100">
+                  <span class="badge bg-warning text-dark mb-2">Wants ({{ budget_plan.wants.percentage }}%)</span>
+                  <h4 class="fw-bold text-warning mb-1">{{ budget_plan.wants.total|currency }}</h4>
+                  <ul class="list-unstyled small mt-2 mb-0">
+                    {% for cat in budget_plan.wants.categories %}
+                    <li class="d-flex justify-content-between py-1 border-bottom border-light">
+                      <span>{{ cat.name }}</span>
+                      <strong>{{ cat.amount|currency }}</strong>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Savings & Emergency -->
+              <div class="col-md-4">
+                <div class="p-3 border rounded border-success bg-success-subtle bg-opacity-10 h-100">
+                  <span class="badge bg-success mb-2">Savings ({{ budget_plan.savings.percentage }}%)</span>
+                  <h4 class="fw-bold text-success mb-1">{{ budget_plan.savings.total|currency }}</h4>
+                  <ul class="list-unstyled small mt-2 mb-0">
+                    {% for item in budget_plan.savings.allocations %}
+                    <li class="d-flex justify-content-between py-1 border-bottom border-light">
+                      <span>{{ item.name }}</span>
+                      <strong>{{ item.amount|currency }}</strong>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Emergency Fund Recommendation -->
+            <div class="p-3 bg-light rounded border mb-4">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="fw-bold mb-1"><i class="bi bi-shield-lock-fill text-primary me-2"></i>Recommended Emergency Fund Target</h6>
+                  <span class="text-muted small">Aim to build a 3-month living cushion</span>
+                </div>
+                <div class="text-end">
+                  <h5 class="fw-bold text-primary mb-0">{{ budget_plan.emergency_fund_target|currency }}</h5>
+                  <small class="text-muted">Allocate {{ budget_plan.monthly_emergency_allocation|currency }}/mo</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actionable Tips -->
+            <h6 class="fw-bold mb-2"><i class="bi bi-check2-all text-primary me-1"></i>Implementation Tips</h6>
+            <ul class="list-group list-group-flush mb-3">
+              {% for tip in budget_plan.actionable_tips %}
+              <li class="list-group-item px-0 py-2 d-flex align-items-start gap-2">
+                <i class="bi bi-arrow-right-short text-primary fs-5 mt-n1"></i>
+                <span class="small">{{ tip }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+
+            <div class="d-flex justify-content-end">
+              <form action="{{ url_for('budget.apply_ai_budget') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="budget_json" value='{{ budget_plan_json|e }}'>
+                <button type="submit" class="btn btn-success fw-semibold">
+                  <i class="bi bi-check-lg me-1"></i> Accept & Save Budget Allocations
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <div class="card shadow-sm p-5 text-center">
+          <div class="mx-auto bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+            <i class="bi bi-pie-chart fs-2"></i>
+          </div>
+          <h4 class="fw-bold">No AI Budget Generated Yet</h4>
+          <p class="text-muted mx-auto" style="max-width: 500px;">
+            Fill out your monthly income and obligations in the form on the left, then click <strong>"Generate My Budget with AI"</strong>. You can review the breakdown before saving it to your live budget.
+          </p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Clear Legal & Informational Disclaimer -->
+<div class="card bg-light border-0 p-3 mt-4">
+  <div class="d-flex gap-2 align-items-start">
+    <i class="bi bi-info-circle-fill text-muted fs-5 mt-1"></i>
+    <p class="small text-muted mb-0">
+      {{ disclaimer }}
+    </p>
+  </div>
+</div>
+{% endblock %}

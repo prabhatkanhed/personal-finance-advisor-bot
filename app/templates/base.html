@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Dashboard{% endblock %} - {{ app_name }}</title>
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block styles %}{% endblock %}
+</head>
+<body>
+
+  <!-- AI Processing Overlay -->
+  <div id="ai-loading-overlay">
+    <div class="spinner-border text-primary mb-3" style="width: 3.5rem; height: 3.5rem;" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <h4 class="fw-bold">AI Financial Engine Thinking...</h4>
+    <p class="text-light opacity-75">Analyzing transactions, calculating risk models, and structuring recommendations.</p>
+  </div>
+
+  <div class="d-flex">
+    {% if current_user.is_authenticated %}
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="d-flex flex-column flex-shrink-0 p-3">
+      <a href="{{ url_for('main.dashboard') }}" class="brand text-decoration-none">
+        <i class="bi bi-wallet2 text-primary fs-3"></i>
+        <span>FinanceAdvisor</span>
+      </a>
+
+      <hr class="border-secondary opacity-25 my-2">
+
+      <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item">
+          <a href="{{ url_for('main.dashboard') }}" class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('finance.income_list') }}" class="nav-link {% if 'income' in request.endpoint %}active{% endif %}">
+            <i class="bi bi-graph-up-arrow"></i>
+            <span>Income</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('finance.expense_list') }}" class="nav-link {% if 'expense' in request.endpoint %}active{% endif %}">
+            <i class="bi bi-receipt"></i>
+            <span>Expenses</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('finance.categories') }}" class="nav-link {% if 'categories' in request.endpoint %}active{% endif %}">
+            <i class="bi bi-tags"></i>
+            <span>Categories</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('budget.index') }}" class="nav-link {% if 'budget' in request.endpoint %}active{% endif %}">
+            <i class="bi bi-pie-chart"></i>
+            <span>Budgets</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('savings.index') }}" class="nav-link {% if 'savings' in request.endpoint %}active{% endif %}">
+            <i class="bi bi-piggy-bank"></i>
+            <span>Savings Goals</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('advisor.index') }}" class="nav-link {% if 'advisor' in request.endpoint %}active{% endif %}">
+            <i class="bi bi-stars text-warning"></i>
+            <span>AI Advisor</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('health.index') }}" class="nav-link {% if 'health' in request.endpoint %}active{% endif %}">
+            <i class="bi bi-heart-pulse text-danger"></i>
+            <span>Financial Health</span>
+          </a>
+        </li>
+      </ul>
+
+      <hr class="border-secondary opacity-25 my-2">
+
+      <!-- User Profile and Logout -->
+      <div class="dropdown">
+        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle p-2 rounded" id="userMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 34px; height: 34px;">
+            {{ current_user.name[:1].upper() }}
+          </div>
+          <strong class="text-truncate" style="max-width: 140px;">{{ current_user.name }}</strong>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="userMenuDropdown">
+          <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="bi bi-person me-2"></i>Profile Settings</a></li>
+          <li><button type="button" class="dropdown-item text-info" data-bs-toggle="modal" data-bs-target="#demoModal"><i class="bi bi-database-add me-2"></i>Load Demo Data</button></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Sign out</a></li>
+        </ul>
+      </div>
+    </aside>
+    {% endif %}
+
+    <!-- Main Content Area -->
+    <main id="content">
+      {% if current_user.is_authenticated %}
+      <!-- Top Navigation Header -->
+      <header class="top-navbar d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-outline-secondary d-lg-none btn-sm" id="sidebarToggle" type="button" aria-label="Toggle navigation">
+            <i class="bi bi-list fs-5"></i>
+          </button>
+          <h5 class="mb-0 fw-bold">{% block page_title %}Overview{% endblock %}</h5>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+          <!-- AI Engine Status Pill -->
+          {% if has_gemini_key %}
+          <span class="ai-badge" title="Gemini API Connected">
+            <i class="bi bi-stars"></i> Gemini Pro Active
+          </span>
+          {% else %}
+          <span class="badge bg-secondary-subtle text-secondary border px-2 py-1" title="Running in intelligent local heuristic mode. Configure GEMINI_API_KEY for live LLM.">
+            <i class="bi bi-cpu"></i> Smart Heuristic AI
+          </span>
+          {% endif %}
+
+          <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#demoModal">
+            <i class="bi bi-magic me-1"></i> Demo Data
+          </button>
+        </div>
+      </header>
+      {% endif %}
+
+      <!-- Toast Container for Notifications -->
+      <div class="toast-container position-fixed top-0 end-0 p-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="toast align-items-center text-bg-{{ category if category != 'error' else 'danger' }} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                  <div class="toast-body">
+                    {{ message }}
+                  </div>
+                  <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+      </div>
+
+      <!-- Main Page Body -->
+      <div class="container-fluid p-4">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+
+  {% if current_user.is_authenticated %}
+  <!-- Load Demo Data Confirmation Modal -->
+  <div class="modal fade" id="demoModal" tabindex="-1" aria-labelledby="demoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="demoModalLabel"><i class="bi bi-database-check text-primary me-2"></i>Populate Sample Demo Data</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Would you like to seed your account with realistic sample financial data? This includes:</p>
+          <ul class="mb-3">
+            <li><strong>Categories:</strong> Housing, Groceries, Dining, Utilities, Entertainment, etc.</li>
+            <li><strong>Incomes:</strong> Salary ($4,850.00), Consulting ($850.00), Dividends ($165.00)</li>
+            <li><strong>Expenses:</strong> Real-world grocery, dining, utilities, and rent records</li>
+            <li><strong>Budgets:</strong> Category-wise monthly limits with progress indicators</li>
+            <li><strong>Savings Goals:</strong> Emergency fund, Tokyo trip, and developer laptop</li>
+          </ul>
+          <p class="text-muted small mb-0"><i class="bi bi-info-circle me-1"></i>This allows you to immediately test all charts, budget tracking, and AI Advisor analysis.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <form action="{{ url_for('auth.load_demo') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-cloud-arrow-down me-1"></i>Seed Demo Data</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Bootstrap 5.3 Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Chart.js 4.4 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <!-- Main Application JS -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
